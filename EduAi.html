@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduAi Companion</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@clarifai/clarifai-browser-sdk"></script>
+    <style>
+        /* Additional CSS styles */
+        #question-input {
+            display: none; /* Initially hide the question input section */
+        }
+    </style>
+</head>
+<body>
+    <h1>Generate an Image</h1>
+    <!-- Academic topic buttons -->
+    <button class="academic-topic" data-topic="Math">Math</button>
+    <button class="academic-topic" data-topic="Science">Science</button>
+    <button class="academic-topic" data-topic="History">History</button>
+    <button class="academic-topic" data-topic="Literature">Literature</button>
+    <button class="academic-topic" data-topic="Others">Others</button>
+    <br><br>
+    <!-- Topic input field -->
+    <input type="text" id="topic" readonly>
+    <!-- Generate Image button -->
+    <button id="generate-image-btn" style="display: none;">Generate Image</button>
+    <!-- Question input section -->
+    <div id="question-input">
+        <h2>Ask a Question</h2>
+        <textarea id="question-text" rows="4" cols="50" placeholder="Type or speak your question..."></textarea>
+        <br>
+        <!-- Submit button -->
+        <button id="submit-btn">Submit</button>
+    </div>
+    <!-- Error message -->
+    <p id="error-message" style="color: red;"></p>
+    <!-- Generated image -->
+    <img id="generated-image" style="max-width: 100%; height: auto; display: none;">
+    
+    <!-- New added section -->
+    <h2>AI Voice Assistant</h2>
+    <button id="speak">Speak</button>
+    <textarea id="transcript" rows="10" cols="50" placeholder="Transcript will appear here..."></textarea>
+    
+    <!-- Chat section -->
+    <div class="container">
+        <h2>OpenAI GPT Chat</h2>
+        <hr>
+        <div class="panel panel-default">
+            <div class="panel-heading">Chat Messages</div>
+            <div class="panel-body" id="chat">
+                <ul class="list-group">
+                </ul>
+            </div>
+        </div>
+        <div class="input-group">
+            <input type="text" id="userInput" class="form-control">
+            <span class="input-group-btn">
+                <button class="btn btn-default" id="submit">Submit</button>
+            </span>
+        </div>
+    </div>
+
+    <script>
+    $(document).ready(function(){
+        // Initialize Clarifai
+        const app = new Clarifai.App({ apiKey: 'YOUR_CLARIFAI_API_KEY' });
+
+        $(".academic-topic").click(function() {
+            var topic = $(this).data("topic");
+            $("#topic").val(topic); // Set the topic input field
+            $("#question-input").show(); // Show the question input section
+            $("#generate-image-btn").show(); // Show the generate image button
+        });
+
+        $("#submit-btn").click(function() {
+            // Submit button functionality
+            // You can handle the submission here
+        });
+
+        $("#generate-image-btn").click(function() {
+            // Generate Image button functionality
+            // You can handle image generation here
+
+            // Get the base64 data URL of the image
+            const imageDataUrl = $('#generated-image').attr('src');
+
+            // Use Clarifai to predict image contents
+            app.models.predict(Clarifai.GENERAL_MODEL, { base64: imageDataUrl.split(',')[1] })
+                .then(response => {
+                    // Process the response
+                    console.log(response);
+                    // Example: Display predicted concepts
+                    const concepts = response.outputs[0].data.concepts;
+                    const predictions = concepts.map(concept => concept.name);
+                    alert('Predicted concepts: ' + predictions.join(', '));
+                })
+                .catch(error => {
+                    console.error('Clarifai prediction error:', error);
+                });
+        });
+
+        $("#submit").click(function(){
+            var userInput = $("#userInput").val();
+            $.get("https://togaballad-pinballruby-5000.codio.io/get?msg=" + userInput, function(data){
+                // Append directly to the `ul` inside `#chat`
+                $("#chat ul").append("<li class='list-group-item'><b>You:</b> " + userInput + "</li>");
+                $("#chat ul").append("<li class='list-group-item'><b>OpenAI:</b> " + data + "</li>");
+                
+                // Clear the input field after sending the message
+                $("#userInput").val('');
+                
+                // Scroll to the bottom of the chat div to show the latest message
+                $("#chat").scrollTop($("#chat")[0].scrollHeight);
+            });
+        });
+
+        // Other JavaScript code goes here...
+    });
+    </script>
+</body>
+</html>
+
+
